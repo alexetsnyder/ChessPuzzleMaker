@@ -1,6 +1,7 @@
-//chess.mjs
+//chess_rules.mjs
+
+import { Sprite, Rect } from './drawing.mjs';
 import { Events, EventTypes } from './events.mjs';
-import { Rect, Text, Sprite } from './drawing.mjs';
 
 const ChessInfo = {
 	SPRITE_FOLDER     : 'sprites',
@@ -28,6 +29,125 @@ const ChessPieceType = {
 		PAWN   : 'w_pawn'
 	},
 	NONE : 'none'
+}
+
+function GetPieceSource(pieceType) {
+	return `${ChessInfo.SPRITE_FOLDER}/${pieceType}${ChessInfo.SPRITE_POSTFIX}`;
+}
+
+function GetPieceSize(pieceType, tileSize) {
+	switch (pieceType) {
+		case ChessPieceType.BLACK.PAWN:
+		case ChessPieceType.WHITE.PAWN:
+			return tileSize - 20;
+		default:
+			return tileSize - 10;
+	}
+}
+
+class ChessPiece extends Sprite {
+	#tile = null
+	#size = 0 
+	#type = ChessPieceType.NONE;
+
+	get tile() {
+		return this.#tile;
+	}
+
+	set tile(val) {
+		this.#tile = val;
+	}
+
+	constructor(tile, type) {
+		var pieceSrc = GetPieceSource(type);
+		var pieceSize = GetPieceSize(type, tile.size);
+		super(pieceSrc, tile.cx - pieceSize / 2, tile.cy - pieceSize / 2, pieceSize, pieceSize); 
+		this.#tile = tile;
+		this.#size = pieceSize;
+		this.#type = type;
+	}
+
+	place(newTile) {
+		this.tile = newTile;
+		this.setPos(this.tile.cx - this.#size / 2, this.tile.cy - this.#size / 2);
+	}
+}
+
+const TileType = {
+	LIGHT : 'light',
+	DARK  : 'dark',
+	NONE  : 'none'
+}
+
+function GetTileSource(tileType) {
+	var tileStr = '';
+	switch (tileType) {
+			case TileType.LIGHT:
+				tileStr = 'square brown light';
+				break;
+			case TileType.DARK:
+				tileStr = 'square brown dark';
+				break;
+			default:
+				console.log('The tile cannot have a type of NONE.');
+				return null;
+	}
+	return `${ChessInfo.SPRITE_FOLDER}/${tileStr + ChessInfo.SPRITE_POSTFIX}`;
+}
+
+class ChessTile extends Sprite {
+	#size = 0
+	#piece = null
+	#index = 0
+	#type = TileType.NONE
+	#isSelected = false;
+	#selection_border = null
+
+	get piece() {
+		return this.#piece;
+	}
+
+	set piece(val) {
+		this.#piece = val;
+	}
+
+	get size() {
+		return this.#size;
+	}
+
+	constructor(left, top, size, type, index) {
+		var tileSrc = GetTileSource(type);
+		super(tileSrc, left + 1, top + 1, size, size);
+		this.#size = size;
+		this.#type = type;
+		this.#index = index;
+		this.#selection_border = new Rect(this.left - 1, this.top - 1, this.width + 2, this.height + 2, '#FF0000')
+	}
+
+	bounds(x, y) {
+		return (Math.pow((x - this.cx), 2) <= Math.pow((this.width / 2), 2) && 
+				Math.pow((y - this.cy), 2) <= Math.pow((this.height / 2), 2));
+	}
+
+	clear() {
+		this.unselect();
+		this.#piece = null;
+	}
+
+	select() {
+		this.#isSelected = true;
+	}
+
+	unselect() {
+		this.#isSelected = false;
+	}
+
+	draw(ctx) {
+		super.draw(ctx);
+		if (this.#isSelected) {
+			this.#selection_border.draw(ctx)
+		}
+	}
 }
 
 const ChessStartPosition = {
@@ -66,111 +186,11 @@ const ChessStartPosition = {
 	63 : ChessPieceType.WHITE.ROOK
 }
 
-class ChessPiece extends Sprite {
-	#pieceType = ChessPieceType.NONE
-	#size = 0
-	#tile_index = -1
-
-	get index() {
-		return this.#tile_index;
-	}
-
-	set index(i) {
-		this.#tile_index = i;
-	}
-
-	static getSrc(pieceType) {
-		return `${ChessInfo.SPRITE_FOLDER}/${pieceType}${ChessInfo.SPRITE_POSTFIX}`;
-	}
-
-	constructor(x, y, size, pieceType, index) {
-		super(ChessPiece.getSrc(pieceType), x - size / 2, y - size / 2, size, size);
-		this.#size = size;
-		this.#pieceType = pieceType;
-		this.index = index;
-	}
-
-	place(tile) {
-		this.index = tile.index;
-		this.setPos(tile.cx - this.#size / 2, tile.cy - this.#size / 2);
-	}
-}
-
-const TileType = {
-	LIGHT : 'light',
-	DARK  : 'dark',
-	NONE  : 'none'
-}
-
-class ChessTile extends Sprite {
-	#size = 0
-	#type = TileType.NONE
-	#text = null
-	#index = -1
-	#isDebug = true;
-	#isSelected = false;
-	#selection_border = null
-
-	get index() {
-		return this.#index;
-	}
-
-	static getSrc(type) {
-		var spriteFolder = ChessInfo.SPRITE_FOLDER;
-		var spritePostfix = ChessInfo.SPRITE_POSTFIX;
-		switch (type) {
-			case TileType.LIGHT:
-				return `${spriteFolder}/square brown light${spritePostfix}`;
-			case TileType.DARK:
-				return `${spriteFolder}/square brown dark${spritePostfix}`;
-			default:
-				console.log('The tile cannot have a type of NONE.');
-				return null;
-		}
-	}
-
-	constructor(left, top, size, type, index, isDebug=true) {
-		super(ChessTile.getSrc(type), left + 1, top + 1, size, size);
-		this.#size = size;
-		this.#type = type;
-		this.#index = index;
-		this.#isDebug = isDebug;
-		this.#selection_border = new Rect(this.left - 1, this.top - 1, this.width + 2, this.height + 2, '#FF0000')
-		var index = (this.left + this.top * ChessInfo.CHESSBOARD_COLS) / this.#size
-		var index_str = `${index.toFixed()}`;
-		this.#text = new Text(index_str, this.left + this.#size / 2, this.top + this.#size / 2);
-	}
-
-	bounds(x, y) {
-		return (Math.pow((x - this.cx), 2) <= Math.pow((this.width / 2), 2) && 
-				Math.pow((y - this.cy), 2) <= Math.pow((this.height / 2), 2));
-	}
-
-	select() {
-		this.#isSelected = true;
-	}
-
-	unselect() {
-		this.#isSelected = false;
-	}
-
-	draw(ctx) {
-		super.draw(ctx);
-		if (this.#isSelected) {
-			this.#selection_border.draw(ctx)
-		}
-		if (this.#isDebug) {
-			this.#text.draw(ctx);
-		}
-	}
-}
-
 class Chessboard {
 	#board = []
 	#pieces = []
 	#tileSize = 0
 	#selectedTile = null
-	#selectedPiece = null
 
 	constructor(tileSize) {
 		this.#tileSize = tileSize;
@@ -204,20 +224,22 @@ class Chessboard {
 		for (var index in ChessStartPosition) {
 			var tile = this.#board[index];
 			var pieceType = ChessStartPosition[index];
-			var chessPiece = new ChessPiece(tile.cx, tile.cy, this.#tileSize-20, pieceType, index);
+			var chessPiece = new ChessPiece(tile, pieceType);
+			tile.piece = chessPiece;
 			this.#pieces.push(chessPiece);
 		}
 	}
 
-	reset() {
-		if (this.#selectedTile != null) {
-			this.#selectedTile.unselect();
-			this.#selectedTile = null;
-		}
-		if (this.#selectedPiece != null) {
-			this.#selectedPiece = null;
+	clear() {
+		this.#selectedTile = null;
+		for (var tile of this.#board) {
+			tile.clear();
 		}
 		this.#pieces.length = 0;
+	}
+
+	reset() {
+		this.clear();
 		this.generatePieces();
 	}
 
@@ -235,50 +257,41 @@ class Chessboard {
 		}
 	}
 
-	getPiece(tile) {
-		var new_piece = null;
-		for (var piece of this.#pieces) {
-			if (piece.index == tile.index) {
-				new_piece = piece;
-				break;
-			}
-		}
-		return new_piece;
-	}
-
 	onResetClick(btnEventArgs) {
 		this.reset();
 	}
 
 	onMouseDown(mouseEventArgs) {
-		var currentTile = this.#selectedTile;
+		var prvTile = this.#selectedTile;
+		var nextTile = null;
 		for (var tile of this.#board) {
 			if (tile.bounds(mouseEventArgs.canvasX, mouseEventArgs.canvasY)) {
-				this.#selectedTile = tile;
+				nextTile = tile;
 				break;
 			}
 		}
 
-		if (this.#selectedTile == currentTile) {
+		if (prvTile == nextTile) {
 			this.#selectedTile.unselect();
-			this.#selectedPiece = null;
 			this.#selectedTile = null;
 		}
 		else {
-			if (currentTile != null) {
-				currentTile.unselect();
+			if (prvTile != null) {
+				prvTile.unselect();
+				var prvPiece = prvTile.piece;
+				var nextPiece = nextTile.piece;
+				if (nextPiece == null && prvPiece != null)
+				{
+					prvTile.clear();
+					nextTile.piece = prvPiece;
+					prvPiece.place(nextTile);
+				}
 			}
+			this.#selectedTile = nextTile;
 			this.#selectedTile.select();
-			var currentPiece = this.#selectedPiece;
-			var tile = this.#selectedTile;
-			this.#selectedPiece = this.getPiece(tile);
-			if (this.#selectedPiece == null && currentPiece != null) {
-				currentPiece.place(tile);
-				this.#selectedPiece = currentPiece;
-			}
-			
 		}
 	}
 }
 
-export { ChessInfo, Chessboard, ChessPieceType };
+export { Chessboard, ChessInfo };
+
