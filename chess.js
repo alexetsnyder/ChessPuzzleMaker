@@ -75,14 +75,22 @@ class BaseClass {
 	}
 
 	constructor(left, top, width, height) {
-		this.left = left;
-		this.right = left + width;
-		this.top = top;
-		this.bottom = top + height;
-		this.cx = left + width / 2;
-		this.cy = top + height / 2;
+		this.setSize(width, height);
+		this.setPos(left, top);
+	}
+
+	setSize(width, height) {
 		this.width = width;
 		this.height = height;
+	}
+
+	setPos(left, top) {
+		this.left = left;
+		this.right = left + this.width;
+		this.top = top;
+		this.bottom = top + this.height;
+		this.cx = left + this.width / 2;
+		this.cy = top + this.height / 2;
 	}
 }
 
@@ -168,16 +176,21 @@ const EventTypes = {
 	MOUSE_UP   : 'mouse_up'
 }
 
-let Delegates = {
-	'mouse_down' : [],
-	'mouse_up'   : [] 
-}
-
 class EventSystem {
 	#canvasLeft = 0
 	#canvasTop = 0 
 	#delegates = {}
 	#keys = []
+
+	get delegates() {
+		return this.#delegates;
+	}
+
+	constructor() {
+		for (var type in EventTypes) {
+			this.delegates[EventTypes[type]] = []
+		}
+	}
 
 	wire_events(canvas) {
 		var rect = canvas.getBoundingClientRect();
@@ -188,11 +201,11 @@ class EventSystem {
 	}
 
 	add_listener(eventType, func) {
-		Delegates[eventType].push(func);
+		this.delegates[eventType].push(func);
 	}
 
 	callAllDelegateOfType(eventType, eventArgs) {
-		for (var func of Delegates[eventType]) {
+		for (var func of this.delegates[eventType]) {
 			func(eventArgs);
 		}
 	}
@@ -302,6 +315,11 @@ class ChessPiece extends Sprite {
 		this.#pieceType = pieceType;
 		this.index = index;
 	}
+
+	place(tile) {
+		this.index = tile.index;
+		this.setPos(tile.cx - this.#size / 2, tile.cy - this.#size / 2);
+	}
 }
 
 const TileType = {
@@ -314,9 +332,14 @@ class ChessTile extends Sprite {
 	#size = 0
 	#type = TileType.NONE
 	#text = null
+	#index = -1
 	#isDebug = true;
 	#isSelected = false;
 	#selection_border = null
+
+	get index() {
+		return this.#index;
+	}
 
 	static getSrc(type) {
 		var spriteFolder = ChessInfo.SPRITE_FOLDER;
@@ -332,10 +355,11 @@ class ChessTile extends Sprite {
 		}
 	}
 
-	constructor(left, top, size, type, isDebug=true) {
+	constructor(left, top, size, type, index, isDebug=true) {
 		super(ChessTile.getSrc(type), left + 1, top + 1, size, size);
 		this.#size = size;
 		this.#type = type;
+		this.#index = index;
 		this.#isDebug = isDebug;
 		this.#selection_border = new Rect(this.left - 1, this.top - 1, this.width + 2, this.height + 2, '#FF0000')
 		var index = (this.left + this.top * ChessInfo.CHESSBOARD_COLS) / this.#size
@@ -349,7 +373,11 @@ class ChessTile extends Sprite {
 	}
 
 	select() {
-		this.#isSelected = !this.#isSelected;
+		this.#isSelected = true;
+	}
+
+	unselect() {
+		this.#isSelected = false;
 	}
 
 	draw(ctx) {
@@ -368,6 +396,7 @@ class Chessboard {
 	#pieces = []
 	#tileSize = 0
 	#selectedTile = null
+	#selectedPiece = null
 
 	constructor(tileSize) {
 		this.#tileSize = tileSize;
@@ -390,7 +419,7 @@ class Chessboard {
 				var left = j * this.#tileSize;
 				var top = i * this.#tileSize;
 				var tileType = (i + j) % 2 == 0 ? TileType.LIGHT : TileType.DARK;
-				var chessTile = new ChessTile(left, top, this.#tileSize, tileType);
+				var chessTile = new ChessTile(left, top, this.#tileSize, tileType, j + i * ChessInfo.CHESSBOARD_COLS);
 				this.#board.push(chessTile);
 			}
 		}
@@ -419,22 +448,44 @@ class Chessboard {
 		}
 	}
 
-	onMouseDown(mouseEventArgs) {
-		if (this.#selectedTile != null) {
-			this.#selectedTile.select();
-			if (this.#selectedTile.bounds(mouseEventArgs.canvasX, mouseEventArgs.canvasY)) {
-				this.#selectedTile = null;
-				return;
+	getPiece(tile) {
+		var new_piece = null;
+		for (var piece of this.#pieces) {
+			if (piece.index == tile.index) {
+				new_piece = piece;
+				break;
 			}
-			this.#selectedTile = null;
 		}
+		return new_piece;
+	}
 
+	onMouseDown(mouseEventArgs) {
+		var currentTile = this.#selectedTile;
 		for (var tile of this.#board) {
 			if (tile.bounds(mouseEventArgs.canvasX, mouseEventArgs.canvasY)) {
-				tile.select();
 				this.#selectedTile = tile;
 				break;
 			}
+		}
+
+		if (this.#selectedTile == currentTile) {
+			this.#selectedTile.unselect();
+			this.#selectedPiece = null;
+			this.#selectedTile = null;
+		}
+		else {
+			if (currentTile != null) {
+				currentTile.unselect();
+			}
+			this.#selectedTile.select();
+			var currentPiece = this.#selectedPiece;
+			var tile = this.#selectedTile;
+			this.#selectedPiece = this.getPiece(tile);
+			if (this.#selectedPiece == null && currentPiece != null) {
+				currentPiece.place(tile);
+				this.#selectedPiece = currentPiece;
+			}
+			
 		}
 	}
 }
