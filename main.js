@@ -20,6 +20,8 @@ class Runtime {
 	}
 
 	draw() {
+		this.#ctx.fillStyle = 'black';
+		this.#ctx.fillRect(0, 0, this.#ctx.canvas.width, this.#ctx.canvas.height);
 		this.#chessboard.draw(this.#ctx);
 	}
 
