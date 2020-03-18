@@ -406,6 +406,7 @@ class Chessboard {
 
 	wire_events() {
 		events.add_listener(EventTypes.MOUSE_DOWN, (mouseEventArgs) => this.onMouseDown(mouseEventArgs));
+		document.getElementById('btnReset').onclick = (btnEventArgs) => this.onResetClick(btnEventArgs);
 	}
 
 	generate() {
@@ -434,6 +435,18 @@ class Chessboard {
 		}
 	}
 
+	reset() {
+		if (this.#selectedTile != null) {
+			this.#selectedTile.unselect();
+			this.#selectedTile = null;
+		}
+		if (this.#selectedPiece != null) {
+			this.#selectedPiece = null;
+		}
+		this.#pieces.length = 0;
+		this.generatePieces();
+	}
+
 	draw(ctx) {
 		for (var tile of this.#board) {
 			if (this.#selectedTile != tile) {
@@ -457,6 +470,10 @@ class Chessboard {
 			}
 		}
 		return new_piece;
+	}
+
+	onResetClick(btnEventArgs) {
+		this.reset();
 	}
 
 	onMouseDown(mouseEventArgs) {
