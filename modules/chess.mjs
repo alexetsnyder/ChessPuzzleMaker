@@ -281,4 +281,4 @@ class Chessboard {
 	}
 }
 
-export { ChessInfo, Chessboard };
+export { ChessInfo, Chessboard, ChessPieceType };
