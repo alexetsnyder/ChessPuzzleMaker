@@ -39,6 +39,8 @@ function GetPieceSize(pieceType, tileSize) {
 	switch (pieceType) {
 		case ChessPieceType.BLACK.PAWN:
 		case ChessPieceType.WHITE.PAWN:
+		case ChessPieceType.BLACK.ROOK:
+		case ChessPieceType.WHITE.ROOK:
 			return tileSize - 20;
 		default:
 			return tileSize - 10;
@@ -103,6 +105,7 @@ class ChessTile extends Sprite {
 	#type = TileType.NONE
 	#isSelected = false;
 	#selection_border = null
+	#showIndex = false
 
 	get piece() {
 		return this.#piece;
@@ -124,6 +127,7 @@ class ChessTile extends Sprite {
 		this.#index = index;
 		this.#selection_border = new Rect(this.left - 1, this.top - 1, this.width + 2, this.height + 2, '#FF0000')
 		this.#text = new Text(`${index}`, this.cx, this.cy);
+		document.getElementById('btnShowGrid').addEventListener('click', (btnEventArgs) => this.onShowGridClick(btnEventArgs));
 	}
 
 	bounds(x, y) {
@@ -146,9 +150,21 @@ class ChessTile extends Sprite {
 
 	draw(ctx) {
 		super.draw(ctx);
-		this.#text.draw(ctx);
+		if (this.#showIndex) {
+			this.#text.draw(ctx);
+		}
 		if (this.#isSelected) {
 			this.#selection_border.draw(ctx)
+		}
+	}
+
+	onShowGridClick(btnEventArgs) {
+		this.#showIndex = !this.#showIndex;
+		if (this.#showIndex) {
+			document.getElementById('btnShowGrid').textContent = 'Hide Grid';
+		}
+		else {
+			document.getElementById('btnShowGrid').textContent = 'Show Grid';
 		}
 	}
 }
@@ -193,11 +209,13 @@ class Chessboard {
 	#board = []
 	#pieces = []
 	#tileSize = 0
+	#coordinates = []
 	#selectedTile = null
 
 	constructor(tileSize) {
 		this.#tileSize = tileSize;
 		this.generateTiles();
+		this.generateCoordinates();
 		this.wire_events();
 	}
 
@@ -207,6 +225,20 @@ class Chessboard {
 		document.getElementById('btnReset').onclick = (btnEventArgs) => this.onResetClick(btnEventArgs);
 		document.getElementById('btnClear').onclick = (btnEventArgs) => this.onClearClick(btnEventArgs);
 
+	}
+
+	generateCoordinates() {
+		for (let i = ChessInfo.CHESSBOARD_ROWS; i > 0; i--) {
+			var tile = this.#board[-(i - ChessInfo.CHESSBOARD_ROWS) * ChessInfo.CHESSBOARD_COLS];
+			var text = new Text(`${i}`, tile.left + 6, tile.top + 10);
+			this.#coordinates.push(text);
+		}
+		var alpha = 'abcdefgh';
+		for (let j = 0; j < ChessInfo.CHESSBOARD_COLS; j++) {
+			var tile = this.#board[ChessInfo.CHESSBOARD_COLS * (ChessInfo.CHESSBOARD_ROWS - 1) + j];
+			var text = new Text(alpha.slice(j, j+1), tile.right - 6, tile.bottom - 7);
+			this.#coordinates.push(text);
+		}
 	}
 
 	generateTiles() {
@@ -252,6 +284,9 @@ class Chessboard {
 		}
 		if (this.#selectedTile != null) {
 			this.#selectedTile.draw(ctx);
+		}
+		for (var text of this.#coordinates) {
+			text.draw(ctx);
 		}
 		for (var piece of this.#pieces) {
 			piece.draw(ctx);
