@@ -1,6 +1,6 @@
 //chess_rules.mjs
 
-import { Sprite, Rect } from './drawing.mjs';
+import { Sprite, Rect, Text } from './drawing.mjs';
 import { Events, EventTypes } from './events.mjs';
 
 const ChessInfo = {
@@ -97,6 +97,7 @@ function GetTileSource(tileType) {
 
 class ChessTile extends Sprite {
 	#size = 0
+	#text = null
 	#piece = null
 	#index = 0
 	#type = TileType.NONE
@@ -122,6 +123,7 @@ class ChessTile extends Sprite {
 		this.#type = type;
 		this.#index = index;
 		this.#selection_border = new Rect(this.left - 1, this.top - 1, this.width + 2, this.height + 2, '#FF0000')
+		this.#text = new Text(`${index}`, this.cx, this.cy);
 	}
 
 	bounds(x, y) {
@@ -144,6 +146,7 @@ class ChessTile extends Sprite {
 
 	draw(ctx) {
 		super.draw(ctx);
+		this.#text.draw(ctx);
 		if (this.#isSelected) {
 			this.#selection_border.draw(ctx)
 		}
@@ -194,18 +197,16 @@ class Chessboard {
 
 	constructor(tileSize) {
 		this.#tileSize = tileSize;
-		this.generate();
+		this.generateTiles();
 		this.wire_events();
 	}
 
 	wire_events() {
 		Events.add_listener(EventTypes.MOUSE_DOWN, (mouseEventArgs) => this.onMouseDown(mouseEventArgs));
+		document.getElementById('btnSetUp').onclick = (btnEventArgs) => this.onSetUpClick(btnEventArgs);
 		document.getElementById('btnReset').onclick = (btnEventArgs) => this.onResetClick(btnEventArgs);
-	}
+		document.getElementById('btnClear').onclick = (btnEventArgs) => this.onClearClick(btnEventArgs);
 
-	generate() {
-		this.generateTiles();
-		this.generatePieces();
 	}
 
 	generateTiles() {
@@ -257,8 +258,22 @@ class Chessboard {
 		}
 	}
 
+	onSetUpClick(btnEventArgs) {
+		this.generatePieces();
+		document.getElementById('btnSetUp').disabled = true;
+		document.getElementById('btnClear').disabled = false;
+		document.getElementById('btnReset').disabled = false;
+	}
+
 	onResetClick(btnEventArgs) {
 		this.reset();
+	}
+
+	onClearClick(btnEventArgs) {
+		this.clear();
+		document.getElementById('btnSetUp').disabled = false;
+		document.getElementById('btnClear').disabled = true;
+		document.getElementById('btnReset').disabled = true;
 	}
 
 	onMouseDown(mouseEventArgs) {
@@ -289,6 +304,46 @@ class Chessboard {
 			}
 			this.#selectedTile = nextTile;
 			this.#selectedTile.select();
+		}
+	}
+}
+
+const Turn = {
+	WHITE : 'white',
+	BLACK : 'black',
+	NONE  : 'none'
+}
+
+class ChessGame {
+	#turn = Turn.NONE;
+
+	constructor() {
+		this.#turn = Turn.WHITE;
+	}
+
+	get_moves(pieceType, fromTile, toTile) {
+		switch (pieceType) {
+			case ChessPieceType.BLACK.PAWN:
+			case ChessPieceType.WHITE.PAWN:
+				break;
+			case ChessPieceType.BLACK.KNIGHT:
+			case ChessPieceType.WHITE.KNIGHT:
+				break;	
+			case ChessPieceType.BLACK.BISHOP:
+			case ChessPieceType.WHITE.BISHOP:
+				break;
+			case ChessPieceType.BLACK.ROOK:
+			case ChessPieceType.WHITE.ROOK:
+				break;		
+			case ChessPieceType.BLACK.QUEEN:
+			case ChessPieceType.WHITE.QUEEN:
+				break;	
+			case ChessPieceType.BLACK.KING:
+			case ChessPieceType.WHITE.KING:
+				break;	
+			default:
+				console.log('Chess Piece Type cannot by none.');
+				break;
 		}
 	}
 }

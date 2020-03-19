@@ -128,8 +128,8 @@ class Text {
 		return this.#string;
 	}
 
-	set string(value) {
-		this.#string = value;
+	set string(val) {
+		this.#string = val;
 	}
 
 	constructor(string, cx, cy, font='20px Arial') {
