@@ -3,17 +3,22 @@
 
 <HEAD>
 	<TITLE> Chess Puzzle Maker </TITLE>
-	<script src="chess.js"> </script>
+	<script type="module" src="main.js"> </script>
 	<link rel="stylesheet" type="text/css" href="chess.css">
 </HEAD>
 
-<BODY id='body' onload="main()">
+<BODY id='body'>
 	<H1> Chess Puzzle Maker </H1>
-	<div>
+	<div id="chessDiv">
 		<canvas id="chessboard">Canvas not supported.</canvas>
 	</div>
-	<div>
-		<button onclick="alert('Button Click!')"> Not Interupted! </button>
+	<div id="prefabDiv">
+	</div>
+	<div id="buttons">
+		<button id="btnSetUp"> Set Up Board </button>
+		<button id="btnReset" disabled="true"> Reset Board </button>
+		<button id="btnClear" disabled="true"> Clear Board </button>
+		<button id="btnShowGrid"> Show Grid </button>
 	</div>
 </BODY>
 
