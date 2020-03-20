@@ -2,7 +2,8 @@
 
 const EventTypes = {
 	MOUSE_DOWN : 'mouse_down',
-	MOUSE_UP   : 'mouse_up'
+	MOUSE_UP   : 'mouse_up',
+	MOUSE_MOVE : 'mouse_move'
 }
 
 class EventSystem {
@@ -27,10 +28,16 @@ class EventSystem {
 		this.#canvasTop = rect.top;
 		canvas.onmousedown = (mouseEventArgs) => this.onMouseDown(mouseEventArgs);
 		canvas.onmouseup = (mouseEventArgs) => this.onMouseUp(mouseEventArgs);
+		canvas.onmousemove = (mouseEventArgs) => this.onMouseMove(mouseEventArgs);
 	}
 
 	add_listener(eventType, func) {
 		this.delegates[eventType].push(func);
+	}
+
+	convertScreenToCanvasPoint(eventArgs) {
+		eventArgs.canvasX = eventArgs.clientX - this.#canvasLeft;
+		eventArgs.canvasY = eventArgs.clientY - this.#canvasTop;
 	}
 
 	callAllDelegateOfType(eventType, eventArgs) {
@@ -49,9 +56,9 @@ class EventSystem {
 		this.callAllDelegateOfType(EventTypes.MOUSE_UP, mouseEventArgs);
 	}
 
-	convertScreenToCanvasPoint(eventArgs) {
-		eventArgs.canvasX = eventArgs.clientX - this.#canvasLeft;
-		eventArgs.canvasY = eventArgs.clientY - this.#canvasTop;
+	onMouseMove(mouseEventArgs) {
+		this.convertScreenToCanvasPoint(mouseEventArgs);
+		this.callAllDelegateOfType(EventTypes.MOUSE_MOVE, mouseEventArgs);
 	}
 }
 

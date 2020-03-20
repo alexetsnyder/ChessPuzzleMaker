@@ -60,18 +60,27 @@ class ChessPiece extends Sprite {
 		this.#tile = val;
 	}
 
+	get size() {
+		return this.#size;
+	}
+
 	constructor(tile, type) {
 		var pieceSrc = GetPieceSource(type);
 		var pieceSize = GetPieceSize(type, tile.size);
 		super(pieceSrc, tile.cx - pieceSize / 2, tile.cy - pieceSize / 2, pieceSize, pieceSize); 
 		this.#tile = tile;
+		this.#tile.piece = this;
 		this.#size = pieceSize;
 		this.#type = type;
 	}
 
 	place(newTile) {
+		if (this.tile != null) {
+			this.tile.piece = null;
+		}
 		this.tile = newTile;
 		this.setPos(this.tile.cx - this.#size / 2, this.tile.cy - this.#size / 2);
+		this.tile.piece = this;
 	}
 }
 
@@ -209,8 +218,11 @@ class Chessboard {
 	#board = []
 	#pieces = []
 	#tileSize = 0
+	#isDragging = false
+	#isClickedOnce = false;
 	#coordinates = []
 	#selectedTile = null
+	#clickedTile = null
 
 	constructor(tileSize) {
 		this.#tileSize = tileSize;
@@ -220,23 +232,24 @@ class Chessboard {
 	}
 
 	wire_events() {
-		Events.add_listener(EventTypes.MOUSE_DOWN, (mouseEventArgs) => this.onMouseDown(mouseEventArgs));
+		Events.add_listener(EventTypes.MOUSE_DOWN, (mouseEventArgs) => this.onMouseButtonDown(mouseEventArgs));
+		Events.add_listener(EventTypes.MOUSE_UP, (mouseEventArgs) => this.onMouseButtonUp(mouseEventArgs));
+		Events.add_listener(EventTypes.MOUSE_MOVE, (mouseEventArgs) => this.onMouseMove(mouseEventArgs));
 		document.getElementById('btnSetUp').onclick = (btnEventArgs) => this.onSetUpClick(btnEventArgs);
 		document.getElementById('btnReset').onclick = (btnEventArgs) => this.onResetClick(btnEventArgs);
 		document.getElementById('btnClear').onclick = (btnEventArgs) => this.onClearClick(btnEventArgs);
-
 	}
 
 	generateCoordinates() {
 		for (let i = ChessInfo.CHESSBOARD_ROWS; i > 0; i--) {
 			var tile = this.#board[-(i - ChessInfo.CHESSBOARD_ROWS) * ChessInfo.CHESSBOARD_COLS];
-			var text = new Text(`${i}`, tile.left + 6, tile.top + 10);
+			var text = new Text(`${i}`, tile.left + 10, tile.top + 15);
 			this.#coordinates.push(text);
 		}
 		var alpha = 'abcdefgh';
 		for (let j = 0; j < ChessInfo.CHESSBOARD_COLS; j++) {
 			var tile = this.#board[ChessInfo.CHESSBOARD_COLS * (ChessInfo.CHESSBOARD_ROWS - 1) + j];
-			var text = new Text(alpha.slice(j, j+1), tile.right - 6, tile.bottom - 7);
+			var text = new Text(alpha.slice(j, j+1), tile.right - 10, tile.bottom - 12);
 			this.#coordinates.push(text);
 		}
 	}
@@ -258,7 +271,6 @@ class Chessboard {
 			var tile = this.#board[index];
 			var pieceType = ChessStartPosition[index];
 			var chessPiece = new ChessPiece(tile, pieceType);
-			tile.piece = chessPiece;
 			this.#pieces.push(chessPiece);
 		}
 	}
@@ -293,6 +305,15 @@ class Chessboard {
 		}
 	}
 
+	movePiece(sourceTile, destinationTile) {
+		var piece = sourceTile.piece;
+		if (piece != null && destinationTile.piece == null) {
+			piece.place(destinationTile);
+			return true;
+		}
+		return false;
+	}
+
 	onSetUpClick(btnEventArgs) {
 		this.generatePieces();
 		document.getElementById('btnSetUp').disabled = true;
@@ -311,35 +332,88 @@ class Chessboard {
 		document.getElementById('btnReset').disabled = true;
 	}
 
-	onMouseDown(mouseEventArgs) {
-		var prvTile = this.#selectedTile;
-		var nextTile = null;
-		for (var tile of this.#board) {
-			if (tile.bounds(mouseEventArgs.canvasX, mouseEventArgs.canvasY)) {
-				nextTile = tile;
-				break;
+	onMouseMove(mouseEventArgs) {
+		if (this.#isDragging && this.#clickedTile != null) {
+			var piece = this.#clickedTile.piece;
+			if (piece != null) {
+				var size = piece.size;
+				piece.setPos(mouseEventArgs.canvasX - size / 2, mouseEventArgs.canvasY - size / 2);
 			}
 		}
+	}
 
-		if (prvTile == nextTile) {
-			this.#selectedTile.unselect();
-			this.#selectedTile = null;
-		}
-		else {
-			if (prvTile != null) {
-				prvTile.unselect();
-				var prvPiece = prvTile.piece;
-				var nextPiece = nextTile.piece;
-				if (nextPiece == null && prvPiece != null)
+	onMouseButtonUp(mouseEventArgs) {
+		this.#isDragging = false;
+		if (this.#clickedTile != null) {
+			var selectedPiece = this.#clickedTile.piece;
+			if (selectedPiece != null) {
+				var nextTile = null;
+				for (var tile of this.#board) {
+					if (tile.bounds(mouseEventArgs.canvasX, mouseEventArgs.canvasY)) {
+						nextTile = tile;
+						break;
+					}
+				}
+
+				if (!this.movePiece(this.#clickedTile, nextTile))
 				{
-					prvTile.clear();
-					nextTile.piece = prvPiece;
-					prvPiece.place(nextTile);
+					selectedPiece.place(this.#clickedTile);
 				}
 			}
-			this.#selectedTile = nextTile;
-			this.#selectedTile.select();
 		}
+	}
+
+	onMouseButtonDown(mouseEventArgs) {
+		this.#isDragging = true;
+		var previousTile = this.#selectedTile;
+		for (var tile of this.#board) {
+			if (tile.bounds(mouseEventArgs.canvasX, mouseEventArgs.canvasY)) {
+				this.#clickedTile = tile;
+				this.#selectedTile = tile;
+				this.#selectedTile.select();
+				if (previousTile != null) {
+					if (previousTile != this.#selectedTile) {
+						previousTile.unselect();
+						this.movePiece(previousTile, this.#selectedTile);
+					}
+					else {
+						this.#selectedTile.unselect();
+						this.#selectedTile = null;
+					}
+				}
+				break;
+			}
+		}	
+	}
+}
+
+class Vector {
+	#x = 0
+	#y = 0
+
+	get x() {
+		return this.#x;
+	}
+
+	set x(val) {
+		this.#x = val;
+	}
+
+	get y() {
+		return this.#y;
+	}
+
+	set y(val) {
+		this.#y = val;
+	}
+
+	constructor(x, y) {
+		this.#x = x;
+		this.#y = y;
+	}
+
+	minus(v2) {
+		return new Vector(this.x - v2.x, this.y - v2.y);
 	}
 }
 
