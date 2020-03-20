@@ -3,14 +3,15 @@
 const EventTypes = {
 	MOUSE_DOWN : 'mouse_down',
 	MOUSE_UP   : 'mouse_up',
-	MOUSE_MOVE : 'mouse_move'
+	MOUSE_MOVE : 'mouse_move',
+	DRAG_OVER  : 'drag_over',
+	DROP       : 'drop'
 }
 
 class EventSystem {
 	#canvasLeft = 0
 	#canvasTop = 0 
 	#delegates = {}
-	#keys = []
 
 	get delegates() {
 		return this.#delegates;
@@ -29,6 +30,8 @@ class EventSystem {
 		canvas.onmousedown = (mouseEventArgs) => this.onMouseDown(mouseEventArgs);
 		canvas.onmouseup = (mouseEventArgs) => this.onMouseUp(mouseEventArgs);
 		canvas.onmousemove = (mouseEventArgs) => this.onMouseMove(mouseEventArgs);
+		canvas.ondragover = (dragEventArgs) => this.onDragOver(dragEventArgs);
+		canvas.ondrop = (dragEventArgs) => this.onDrop(dragEventArgs);
 	}
 
 	add_listener(eventType, func) {
@@ -59,6 +62,18 @@ class EventSystem {
 	onMouseMove(mouseEventArgs) {
 		this.convertScreenToCanvasPoint(mouseEventArgs);
 		this.callAllDelegateOfType(EventTypes.MOUSE_MOVE, mouseEventArgs);
+	}
+
+	onDragOver(dragEventArgs) {
+		dragEventArgs.preventDefault();
+		this.convertScreenToCanvasPoint(dragEventArgs);
+		this.callAllDelegateOfType(EventTypes.DRAG_OVER, dragEventArgs);
+	}
+
+	onDrop(dragEventArgs) {
+		dragEventArgs.preventDefault();
+		this.convertScreenToCanvasPoint(dragEventArgs);
+		this.callAllDelegateOfType(EventTypes.DROP, dragEventArgs);
 	}
 }
 

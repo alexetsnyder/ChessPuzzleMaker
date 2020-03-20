@@ -9,6 +9,20 @@ h1 {
 	margin: 0px;
 }
 
+#chessboard {
+	margin: 0px;
+}
+
 #buttons {
 	margin: 5px 0px 0px 0px;
+	clear: both;
+}
+
+#chessDiv {
+	float: left;
+}
+
+#prefabDiv {
+	margin: 0px 10px 10px 10px;
+	float: left;
 }

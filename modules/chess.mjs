@@ -214,6 +214,12 @@ const ChessStartPosition = {
 	63 : ChessPieceType.WHITE.ROOK
 }
 
+const ChessPieceColor = {
+	WHITE : 'w_',
+	BLACK : 'b_',
+	NONE  : 'none'
+}
+
 class Chessboard {
 	#board = []
 	#pieces = []
@@ -223,11 +229,14 @@ class Chessboard {
 	#coordinates = []
 	#selectedTile = null
 	#clickedTile = null
+	#prefabColor = ChessPieceColor.WHITE;
+	#prefabPieces = ChessPieceType.WHITE;
 
 	constructor(tileSize) {
 		this.#tileSize = tileSize;
 		this.generateTiles();
 		this.generateCoordinates();
+		this.generatePrefabs();
 		this.wire_events();
 	}
 
@@ -235,6 +244,7 @@ class Chessboard {
 		Events.add_listener(EventTypes.MOUSE_DOWN, (mouseEventArgs) => this.onMouseButtonDown(mouseEventArgs));
 		Events.add_listener(EventTypes.MOUSE_UP, (mouseEventArgs) => this.onMouseButtonUp(mouseEventArgs));
 		Events.add_listener(EventTypes.MOUSE_MOVE, (mouseEventArgs) => this.onMouseMove(mouseEventArgs));
+		Events.add_listener(EventTypes.DROP, (dragEventArgs) => this.onDropPiece(dragEventArgs));
 		document.getElementById('btnSetUp').onclick = (btnEventArgs) => this.onSetUpClick(btnEventArgs);
 		document.getElementById('btnReset').onclick = (btnEventArgs) => this.onResetClick(btnEventArgs);
 		document.getElementById('btnClear').onclick = (btnEventArgs) => this.onClearClick(btnEventArgs);
@@ -257,8 +267,8 @@ class Chessboard {
 	generateTiles() {
 		for (let i = 0; i < ChessInfo.CHESSBOARD_ROWS; i++) {
 			for (let j = 0; j < ChessInfo.CHESSBOARD_COLS; j++) {
-				var left = j * this.#tileSize;
-				var top = i * this.#tileSize;
+				var left = j * this.#tileSize + 2;
+				var top = i * this.#tileSize + 2;
 				var tileType = (i + j) % 2 == 0 ? TileType.LIGHT : TileType.DARK;
 				var chessTile = new ChessTile(left, top, this.#tileSize, tileType, j + i * ChessInfo.CHESSBOARD_COLS);
 				this.#board.push(chessTile);
@@ -266,7 +276,45 @@ class Chessboard {
 		}
 	}
 
+	setUpImage(pieceType) {
+		var pieceName = this.#prefabPieces[pieceType];
+		var pieceSize = GetPieceSize(pieceName, this.#tileSize);
+		var altText = pieceName.slice(2).toUpperCase();
+		var image = new Image(pieceSize, pieceSize);
+		image.src = GetPieceSource(pieceName);
+		image.alt = altText;
+		image.id = altText;
+		image.ondragstart = (dragEventArgs) => this.onDragStart(dragEventArgs);
+		return image;
+	}
+
+	setUpButton() {
+		var div = document.createElement('div');
+		var button = document.createElement('button');
+		button.textContent = 'BLACK';
+		button.style.width = '60px';
+		button.style.height = '40px';
+		button.style.background = '#000000';
+		button.style.color = '#FFFFFF';
+		button.style.margin = '0px 0px 5px 0px';
+		button.id = 'prefabColor';
+		button.onclick = () => this.onChangeColorClick();
+		div.appendChild(button);
+		return div;
+	}
+
+	generatePrefabs() {
+		var div = this.setUpButton();
+		document.getElementById('prefabDiv').appendChild(div);
+		for (var pieceType in this.#prefabPieces) {
+			var div = document.createElement('div');
+			div.appendChild(this.setUpImage(pieceType));
+			document.getElementById('prefabDiv').appendChild(div);
+		}
+	}
+
 	generatePieces() {
+		this.#pieces.length = 0;
 		for (var index in ChessStartPosition) {
 			var tile = this.#board[index];
 			var pieceType = ChessStartPosition[index];
@@ -314,6 +362,37 @@ class Chessboard {
 		return false;
 	}
 
+	switchPrefabButton(pieceColor) {
+		var button = document.getElementById('prefabColor');
+		button.textContent = pieceColor;
+		var backColor = button.style.background;
+		button.style.background = button.style.color;
+		button.style.color = backColor;
+	}
+
+	switchPieceColor() {
+		for (var pieceType in this.#prefabPieces) {
+			var pieceName = this.#prefabPieces[pieceType];
+			var prefab = document.getElementById(pieceType);
+			prefab.src = GetPieceSource(pieceName);
+		}
+	}
+
+	onChangeColorClick() {
+		if (this.#prefabColor == ChessPieceColor.WHITE) {
+			this.#prefabColor = ChessPieceColor.BLACK;
+			this.#prefabPieces = ChessPieceType.BLACK;
+			this.switchPieceColor();
+			this.switchPrefabButton('WHITE');
+		}
+		else {
+			this.#prefabColor = ChessPieceColor.WHITE;
+			this.#prefabPieces = ChessPieceType.WHITE;
+			this.switchPieceColor();
+			this.switchPrefabButton('BLACK');
+		}
+	}
+
 	onSetUpClick(btnEventArgs) {
 		this.generatePieces();
 		document.getElementById('btnSetUp').disabled = true;
@@ -330,6 +409,23 @@ class Chessboard {
 		document.getElementById('btnSetUp').disabled = false;
 		document.getElementById('btnClear').disabled = true;
 		document.getElementById('btnReset').disabled = true;
+	}
+
+	onDragStart(dragEventArgs) {
+		dragEventArgs.dataTransfer.setData('piece', dragEventArgs.srcElement.alt);
+	}
+
+	onDropPiece(dragEventArgs) {
+		var pieceType = this.#prefabColor + dragEventArgs.dataTransfer.getData('piece').toLowerCase();
+		for (var tile of this.#board) {
+			if (tile.bounds(dragEventArgs.canvasX, dragEventArgs.canvasY)) {
+				if (tile.piece == null) {
+					var piece = new ChessPiece(tile, pieceType);
+					this.#pieces.push(piece);
+					document.getElementById('btnClear').disabled = false;
+				}
+			}
+		}
 	}
 
 	onMouseMove(mouseEventArgs) {
@@ -358,6 +454,10 @@ class Chessboard {
 				if (!this.movePiece(this.#clickedTile, nextTile))
 				{
 					selectedPiece.place(this.#clickedTile);
+				}
+				else {
+					this.#clickedTile.unselect();
+					this.#selectedTile = null;
 				}
 			}
 		}

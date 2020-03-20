@@ -38,7 +38,7 @@ function main() {
 	var canvas = document.getElementById('chessboard');
 	var ctx = canvas.getContext('2d');
 	Events.wire_events(canvas);
-	var canvasSize = ChessInfo.CHESSBOARD_ROWS * ChessInfo.DEFAULT_TILE_SIZE + 2; //Add 2 for selection border
+	var canvasSize = ChessInfo.CHESSBOARD_ROWS * ChessInfo.DEFAULT_TILE_SIZE + 6; //Add 4 for selection border
 	ctx.canvas.width = canvasSize;
 	ctx.canvas.height = canvasSize;
 	var runtime = new Runtime(ctx, ChessInfo.DEFAULT_TILE_SIZE);
