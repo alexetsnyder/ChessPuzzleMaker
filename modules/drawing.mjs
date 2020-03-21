@@ -108,7 +108,13 @@ class Sprite extends BaseClass {
 	load_image() {
 		this.#image = new Image();
 		this.#image.onload = () => { this.#isLoaded = true; };
-		this.#image.src = this.#src;
+		this.#image.onerror = () => {
+			this.#image.onerror = null;
+			console.log('Image was not found.');	
+			this.#image.onload = () => { this.#isLoaded = true; };
+			this.#image.src = 'sprites/error.png'
+		};
+		this.#image.src = this.#src;		
 	}
 
 	draw(ctx) {

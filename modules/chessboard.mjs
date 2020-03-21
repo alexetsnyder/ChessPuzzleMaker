@@ -1,4 +1,4 @@
-//chess_rules.mjs
+//chess.mjs
 
 import { Sprite, Rect, Text } from './drawing.mjs';
 import { Events, EventTypes } from './events.mjs';
@@ -229,15 +229,15 @@ class Chessboard {
 	#coordinates = []
 	#selectedTile = null
 	#clickedTile = null
-	#prefabColor = ChessPieceColor.WHITE;
-	#prefabPieces = ChessPieceType.WHITE;
 
 	constructor(tileSize) {
 		this.#tileSize = tileSize;
+		this.showBoardEditorTab();
 		this.generateTiles();
 		this.generateCoordinates();
-		this.generatePrefabs();
+		this.assayPrefabs();
 		this.wire_events();
+		this.write_tab_events();
 	}
 
 	wire_events() {
@@ -248,6 +248,14 @@ class Chessboard {
 		document.getElementById('btnSetUp').onclick = (btnEventArgs) => this.onSetUpClick(btnEventArgs);
 		document.getElementById('btnReset').onclick = (btnEventArgs) => this.onResetClick(btnEventArgs);
 		document.getElementById('btnClear').onclick = (btnEventArgs) => this.onClearClick(btnEventArgs);
+	}
+
+	write_tab_events() {
+		document.getElementById('btnBoardEditorTab').onclick = () => this.onBoardEditorTabClicked();
+		document.getElementById('btnImportGameTab').onclick = () => this.onImportGameTabClicked();
+		document.getElementById('btnPuzzleMakerTab').onclick = () => this.onPuzzleMakerTabClicked();
+		document.getElementById('btnPlayChessTab').onclick = () => this.onPlayChessTabClicked();
+		document.getElementById('btnImportGame').onclick = () => this.onImportGameClicked();
 	}
 
 	generateCoordinates() {
@@ -276,43 +284,6 @@ class Chessboard {
 		}
 	}
 
-	setUpImage(pieceType) {
-		var pieceName = this.#prefabPieces[pieceType];
-		var pieceSize = GetPieceSize(pieceName, this.#tileSize);
-		var altText = pieceName.slice(2).toUpperCase();
-		var image = new Image(pieceSize, pieceSize);
-		image.src = GetPieceSource(pieceName);
-		image.alt = altText;
-		image.id = altText;
-		image.ondragstart = (dragEventArgs) => this.onDragStart(dragEventArgs);
-		return image;
-	}
-
-	setUpButton() {
-		var div = document.createElement('div');
-		var button = document.createElement('button');
-		button.textContent = 'BLACK';
-		button.style.width = '60px';
-		button.style.height = '40px';
-		button.style.background = '#000000';
-		button.style.color = '#FFFFFF';
-		button.style.margin = '0px 0px 5px 0px';
-		button.id = 'prefabColor';
-		button.onclick = () => this.onChangeColorClick();
-		div.appendChild(button);
-		return div;
-	}
-
-	generatePrefabs() {
-		var div = this.setUpButton();
-		document.getElementById('prefabDiv').appendChild(div);
-		for (var pieceType in this.#prefabPieces) {
-			var div = document.createElement('div');
-			div.appendChild(this.setUpImage(pieceType));
-			document.getElementById('prefabDiv').appendChild(div);
-		}
-	}
-
 	generatePieces() {
 		this.#pieces.length = 0;
 		for (var index in ChessStartPosition) {
@@ -320,6 +291,16 @@ class Chessboard {
 			var pieceType = ChessStartPosition[index];
 			var chessPiece = new ChessPiece(tile, pieceType);
 			this.#pieces.push(chessPiece);
+		}
+	}
+
+	assayPrefabs() {
+		var chessPieceImages = document.getElementsByClassName('chessPieces');
+		for (var chessPieceImage of chessPieceImages) {
+			var pieceSize = GetPieceSize(chessPieceImage.alt, this.#tileSize);
+			chessPieceImage.width = pieceSize;
+			chessPieceImage.height = pieceSize;
+			chessPieceImage.ondragstart = (dragEventArgs) => this.onDragStart(dragEventArgs);
 		}
 	}
 
@@ -362,35 +343,100 @@ class Chessboard {
 		return false;
 	}
 
-	switchPrefabButton(pieceColor) {
-		var button = document.getElementById('prefabColor');
-		button.textContent = pieceColor;
-		var backColor = button.style.background;
-		button.style.background = button.style.color;
-		button.style.color = backColor;
+	showBoardEditorTab() {
+		var boardEditorDiv = document.getElementById('boardEditorDiv');
+		var btnBoardEditorTab = document.getElementById('btnBoardEditorTab');
+		boardEditorDiv.style.display = 'block';
+		btnBoardEditorTab.className += ' active';
 	}
 
-	switchPieceColor() {
-		for (var pieceType in this.#prefabPieces) {
-			var pieceName = this.#prefabPieces[pieceType];
-			var prefab = document.getElementById(pieceType);
-			prefab.src = GetPieceSource(pieceName);
-		}
+	hideBoardEditorTab() {
+		var boardEditorDiv = document.getElementById('boardEditorDiv');
+		var btnBoardEditorTab = document.getElementById('btnBoardEditorTab');
+		boardEditorDiv.style.display = 'none';
+		btnBoardEditorTab.className = btnBoardEditorTab.className.replace(' active', '');
 	}
 
-	onChangeColorClick() {
-		if (this.#prefabColor == ChessPieceColor.WHITE) {
-			this.#prefabColor = ChessPieceColor.BLACK;
-			this.#prefabPieces = ChessPieceType.BLACK;
-			this.switchPieceColor();
-			this.switchPrefabButton('WHITE');
-		}
-		else {
-			this.#prefabColor = ChessPieceColor.WHITE;
-			this.#prefabPieces = ChessPieceType.WHITE;
-			this.switchPieceColor();
-			this.switchPrefabButton('BLACK');
-		}
+	showImportGameTab() {
+		var importGameDiv = document.getElementById('importGameDiv');
+		var btnImportGameTab = document.getElementById('btnImportGameTab');
+		importGameDiv.style.display = 'block';
+		btnImportGameTab.className += ' active';
+	}
+
+	hideImportGameTab() {
+		var importGameDiv = document.getElementById('importGameDiv');
+		var btnImportGameTab = document.getElementById('btnImportGameTab');
+		importGameDiv.style.display = 'none';
+		btnImportGameTab.className = btnImportGameTab.className.replace(' active', '');
+	}
+
+	showPuzzleMakerTab() {
+		var puzzleMakerDiv = document.getElementById('puzzleMakerDiv');
+		var btnPuzzleMakerTab = document.getElementById('btnPuzzleMakerTab');
+		puzzleMakerDiv.style.display = 'block';
+		btnPuzzleMakerTab.className += ' active';
+	}
+
+	hidePuzzleMakerTab() {
+		var puzzleMakerDiv = document.getElementById('puzzleMakerDiv');
+		var btnPuzzleMakerTab = document.getElementById('btnPuzzleMakerTab');
+		puzzleMakerDiv.style.display = 'none';
+		btnPuzzleMakerTab.className = btnPuzzleMakerTab.className.replace(' active', '');
+	}
+
+	showPlayChessTab() {
+		var playChessDiv = document.getElementById('playChessDiv');
+		var btnPlayChessTab = document.getElementById('btnPlayChessTab');
+		playChessDiv.style.display = 'block';
+		btnPlayChessTab.className += ' active';
+	}
+
+	hidePlayChessTab() {
+		var playChessDiv = document.getElementById('playChessDiv');
+		var btnPlayChessTab = document.getElementById('btnPlayChessTab');
+		playChessDiv.style.display = 'none';
+		btnPlayChessTab.className = btnPlayChessTab.className.replace(' active', '');
+	}
+
+	getAllImageSrcNames() {
+		var allowedNames = [];
+		Object.keys(ChessPieceType.WHITE).forEach((key) => allowedNames.push(ChessPieceType.WHITE[key]));
+		Object.keys(ChessPieceType.BLACK).forEach((key) => allowedNames.push(ChessPieceType.BLACK[key]));
+		return allowedNames;
+	}
+
+	onImportGameClicked() {
+		var pgnText = document.getElementById('pgnText');
+		alert(pgnText.value);
+	}
+
+	onBoardEditorTabClicked() {
+		this.showBoardEditorTab();
+		this.hideImportGameTab();
+		this.hidePuzzleMakerTab();
+		this.hidePlayChessTab();
+	}
+
+	onImportGameTabClicked() {
+		this.showImportGameTab();
+		this.hideBoardEditorTab();
+		this.hidePuzzleMakerTab();
+		this.hidePlayChessTab();
+	}
+
+	onPuzzleMakerTabClicked() {
+		this.showPuzzleMakerTab();
+		this.hideBoardEditorTab();
+		this.hideImportGameTab();
+		this.hidePlayChessTab();
+	}
+
+	onPlayChessTabClicked() {
+		this.showPlayChessTab();
+		this.hideBoardEditorTab();
+		this.hideImportGameTab();
+		this.hidePuzzleMakerTab();
 	}
 
 	onSetUpClick(btnEventArgs) {
@@ -412,17 +458,20 @@ class Chessboard {
 	}
 
 	onDragStart(dragEventArgs) {
-		dragEventArgs.dataTransfer.setData('piece', dragEventArgs.srcElement.alt);
+		dragEventArgs.dataTransfer.setData('pieceType', dragEventArgs.srcElement.alt);
 	}
 
 	onDropPiece(dragEventArgs) {
-		var pieceType = this.#prefabColor + dragEventArgs.dataTransfer.getData('piece').toLowerCase();
-		for (var tile of this.#board) {
-			if (tile.bounds(dragEventArgs.canvasX, dragEventArgs.canvasY)) {
-				if (tile.piece == null) {
-					var piece = new ChessPiece(tile, pieceType);
-					this.#pieces.push(piece);
-					document.getElementById('btnClear').disabled = false;
+		var allowedSrcNames = this.getAllImageSrcNames();
+		var pieceType = dragEventArgs.dataTransfer.getData('pieceType').toLowerCase();
+		if (allowedSrcNames.includes(pieceType)) {
+			for (var tile of this.#board) {
+				if (tile.bounds(dragEventArgs.canvasX, dragEventArgs.canvasY)) {
+					if (tile.piece == null) {
+						var piece = new ChessPiece(tile, pieceType);
+						this.#pieces.push(piece);
+						document.getElementById('btnClear').disabled = false;
+					}
 				}
 			}
 		}
@@ -484,76 +533,6 @@ class Chessboard {
 				break;
 			}
 		}	
-	}
-}
-
-class Vector {
-	#x = 0
-	#y = 0
-
-	get x() {
-		return this.#x;
-	}
-
-	set x(val) {
-		this.#x = val;
-	}
-
-	get y() {
-		return this.#y;
-	}
-
-	set y(val) {
-		this.#y = val;
-	}
-
-	constructor(x, y) {
-		this.#x = x;
-		this.#y = y;
-	}
-
-	minus(v2) {
-		return new Vector(this.x - v2.x, this.y - v2.y);
-	}
-}
-
-const Turn = {
-	WHITE : 'white',
-	BLACK : 'black',
-	NONE  : 'none'
-}
-
-class ChessGame {
-	#turn = Turn.NONE;
-
-	constructor() {
-		this.#turn = Turn.WHITE;
-	}
-
-	get_moves(pieceType, fromTile, toTile) {
-		switch (pieceType) {
-			case ChessPieceType.BLACK.PAWN:
-			case ChessPieceType.WHITE.PAWN:
-				break;
-			case ChessPieceType.BLACK.KNIGHT:
-			case ChessPieceType.WHITE.KNIGHT:
-				break;	
-			case ChessPieceType.BLACK.BISHOP:
-			case ChessPieceType.WHITE.BISHOP:
-				break;
-			case ChessPieceType.BLACK.ROOK:
-			case ChessPieceType.WHITE.ROOK:
-				break;		
-			case ChessPieceType.BLACK.QUEEN:
-			case ChessPieceType.WHITE.QUEEN:
-				break;	
-			case ChessPieceType.BLACK.KING:
-			case ChessPieceType.WHITE.KING:
-				break;	
-			default:
-				console.log('Chess Piece Type cannot by none.');
-				break;
-		}
 	}
 }
 

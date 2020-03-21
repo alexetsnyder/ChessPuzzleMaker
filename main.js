@@ -1,6 +1,6 @@
 //main.js
 import { Events } from './modules/events.mjs';
-import { Chessboard, ChessInfo } from './modules/chess.mjs';
+import { Chessboard, ChessInfo } from './modules/chessboard.mjs';
 
 class Runtime { 
 	#isRunning = false
@@ -35,10 +35,10 @@ class Runtime {
 }
 
 function main() {
-	var canvas = document.getElementById('chessboard');
+	var canvas = document.getElementById('cnvChessboard');
 	var ctx = canvas.getContext('2d');
 	Events.wire_events(canvas);
-	var canvasSize = ChessInfo.CHESSBOARD_ROWS * ChessInfo.DEFAULT_TILE_SIZE + 6; //Add 4 for selection border
+	var canvasSize = ChessInfo.CHESSBOARD_ROWS * ChessInfo.DEFAULT_TILE_SIZE + 6; //Add 6 for selection border
 	ctx.canvas.width = canvasSize;
 	ctx.canvas.height = canvasSize;
 	var runtime = new Runtime(ctx, ChessInfo.DEFAULT_TILE_SIZE);
