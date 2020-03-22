@@ -39,12 +39,8 @@ body {
   display: none;
 }
 
-/*.pieceTriple {
-	text-align: center;
-}*/
-
 #chessEditor {
-	width: 50%;
+	width: 40%;
 	float: left;
 }
 
@@ -59,10 +55,12 @@ body {
 }
 
 #pgnText {
-	width: 500px;
-	height: 300px;
+  float: center;
+	width: 90%;
+	height: 400px;
 }
 
 #btnImportGame {
+  float: right;
 	margin: 20px 0px 0px 0px;
 }

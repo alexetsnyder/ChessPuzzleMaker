@@ -232,12 +232,12 @@ class Chessboard {
 
 	constructor(tileSize) {
 		this.#tileSize = tileSize;
-		this.showBoardEditorTab();
+		var defaultTab = document.getElementById('btnBoardEditorTab');
+		this.showTab(defaultTab);
 		this.generateTiles();
 		this.generateCoordinates();
 		this.assayPrefabs();
 		this.wire_events();
-		this.write_tab_events();
 	}
 
 	wire_events() {
@@ -245,16 +245,20 @@ class Chessboard {
 		Events.add_listener(EventTypes.MOUSE_UP, (mouseEventArgs) => this.onMouseButtonUp(mouseEventArgs));
 		Events.add_listener(EventTypes.MOUSE_MOVE, (mouseEventArgs) => this.onMouseMove(mouseEventArgs));
 		Events.add_listener(EventTypes.DROP, (dragEventArgs) => this.onDropPiece(dragEventArgs));
+		this.wire_tab_events();
+		this.wire_btn_events();
+	}
+
+	wire_tab_events() {
+		for (var tab of document.getElementsByClassName('tabLinks')) {
+			tab.onclick = (tabEventArgs) => this.onTabClicked(tabEventArgs);
+		}
+	}
+
+	wire_btn_events() {
 		document.getElementById('btnSetUp').onclick = (btnEventArgs) => this.onSetUpClick(btnEventArgs);
 		document.getElementById('btnReset').onclick = (btnEventArgs) => this.onResetClick(btnEventArgs);
 		document.getElementById('btnClear').onclick = (btnEventArgs) => this.onClearClick(btnEventArgs);
-	}
-
-	write_tab_events() {
-		document.getElementById('btnBoardEditorTab').onclick = () => this.onBoardEditorTabClicked();
-		document.getElementById('btnImportGameTab').onclick = () => this.onImportGameTabClicked();
-		document.getElementById('btnPuzzleMakerTab').onclick = () => this.onPuzzleMakerTabClicked();
-		document.getElementById('btnPlayChessTab').onclick = () => this.onPlayChessTabClicked();
 		document.getElementById('btnImportGame').onclick = () => this.onImportGameClicked();
 	}
 
@@ -334,69 +338,39 @@ class Chessboard {
 		}
 	}
 
+	setPiece(piece, destinationTile) {
+		piece.place(destinationTile);
+	} 
+
 	movePiece(sourceTile, destinationTile) {
 		var piece = sourceTile.piece;
 		if (piece != null && destinationTile.piece == null) {
-			piece.place(destinationTile);
+			this.setPiece(piece, destinationTile);
 			return true;
 		}
 		return false;
 	}
 
-	showBoardEditorTab() {
-		var boardEditorDiv = document.getElementById('boardEditorDiv');
-		var btnBoardEditorTab = document.getElementById('btnBoardEditorTab');
-		boardEditorDiv.style.display = 'block';
-		btnBoardEditorTab.className += ' active';
+	showTab(display_tab) {
+		for (var btnTab of document.getElementsByClassName('tabLinks')) {
+			btnTab.className = btnTab.className.replace(' active', '');
+		}
+		display_tab.className += ' active';
+		for (var tab of document.getElementsByClassName('tabContent')) {
+			tab.style.display = 'none';
+		}
+
+		var firstLetter = display_tab.id.slice(3, 4).toLowerCase();
+		var commonName = display_tab.id.slice(4, display_tab.id.length - 3);
+		var tabContentId = `${firstLetter}${commonName}Div`;
+		var tabContent = document.getElementById(tabContentId);
+		tabContent.style.display = 'block';
+		
 	}
 
-	hideBoardEditorTab() {
-		var boardEditorDiv = document.getElementById('boardEditorDiv');
-		var btnBoardEditorTab = document.getElementById('btnBoardEditorTab');
-		boardEditorDiv.style.display = 'none';
-		btnBoardEditorTab.className = btnBoardEditorTab.className.replace(' active', '');
-	}
-
-	showImportGameTab() {
-		var importGameDiv = document.getElementById('importGameDiv');
-		var btnImportGameTab = document.getElementById('btnImportGameTab');
-		importGameDiv.style.display = 'block';
-		btnImportGameTab.className += ' active';
-	}
-
-	hideImportGameTab() {
-		var importGameDiv = document.getElementById('importGameDiv');
-		var btnImportGameTab = document.getElementById('btnImportGameTab');
-		importGameDiv.style.display = 'none';
-		btnImportGameTab.className = btnImportGameTab.className.replace(' active', '');
-	}
-
-	showPuzzleMakerTab() {
-		var puzzleMakerDiv = document.getElementById('puzzleMakerDiv');
-		var btnPuzzleMakerTab = document.getElementById('btnPuzzleMakerTab');
-		puzzleMakerDiv.style.display = 'block';
-		btnPuzzleMakerTab.className += ' active';
-	}
-
-	hidePuzzleMakerTab() {
-		var puzzleMakerDiv = document.getElementById('puzzleMakerDiv');
-		var btnPuzzleMakerTab = document.getElementById('btnPuzzleMakerTab');
-		puzzleMakerDiv.style.display = 'none';
-		btnPuzzleMakerTab.className = btnPuzzleMakerTab.className.replace(' active', '');
-	}
-
-	showPlayChessTab() {
-		var playChessDiv = document.getElementById('playChessDiv');
-		var btnPlayChessTab = document.getElementById('btnPlayChessTab');
-		playChessDiv.style.display = 'block';
-		btnPlayChessTab.className += ' active';
-	}
-
-	hidePlayChessTab() {
-		var playChessDiv = document.getElementById('playChessDiv');
-		var btnPlayChessTab = document.getElementById('btnPlayChessTab');
-		playChessDiv.style.display = 'none';
-		btnPlayChessTab.className = btnPlayChessTab.className.replace(' active', '');
+	onTabClicked(tabEventArgs) {
+		console.log(tabEventArgs.srcElement);
+		this.showTab(tabEventArgs.srcElement);
 	}
 
 	getAllImageSrcNames() {
@@ -411,36 +385,8 @@ class Chessboard {
 		alert(pgnText.value);
 	}
 
-	onBoardEditorTabClicked() {
-		this.showBoardEditorTab();
-		this.hideImportGameTab();
-		this.hidePuzzleMakerTab();
-		this.hidePlayChessTab();
-	}
-
-	onImportGameTabClicked() {
-		this.showImportGameTab();
-		this.hideBoardEditorTab();
-		this.hidePuzzleMakerTab();
-		this.hidePlayChessTab();
-	}
-
-	onPuzzleMakerTabClicked() {
-		this.showPuzzleMakerTab();
-		this.hideBoardEditorTab();
-		this.hideImportGameTab();
-		this.hidePlayChessTab();
-	}
-
-	onPlayChessTabClicked() {
-		this.showPlayChessTab();
-		this.hideBoardEditorTab();
-		this.hideImportGameTab();
-		this.hidePuzzleMakerTab();
-	}
-
 	onSetUpClick(btnEventArgs) {
-		this.generatePieces();
+		this.reset();
 		document.getElementById('btnSetUp').disabled = true;
 		document.getElementById('btnClear').disabled = false;
 		document.getElementById('btnReset').disabled = false;
@@ -502,7 +448,7 @@ class Chessboard {
 
 				if (!this.movePiece(this.#clickedTile, nextTile))
 				{
-					selectedPiece.place(this.#clickedTile);
+					this.setPiece(selectedPiece, this.#clickedTile);
 				}
 				else {
 					this.#clickedTile.unselect();
