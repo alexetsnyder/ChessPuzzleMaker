@@ -225,7 +225,6 @@ class Chessboard {
 	#pieces = []
 	#tileSize = 0
 	#isDragging = false
-	#isClickedOnce = false;
 	#coordinates = []
 	#selectedTile = null
 	#clickedTile = null
@@ -256,8 +255,7 @@ class Chessboard {
 	}
 
 	wire_btn_events() {
-		document.getElementById('btnSetUp').onclick = (btnEventArgs) => this.onSetUpClick(btnEventArgs);
-		document.getElementById('btnReset').onclick = (btnEventArgs) => this.onResetClick(btnEventArgs);
+		document.getElementById('btnStartPos').onclick = (btnEventArgs) => this.onStartPosClick(btnEventArgs);
 		document.getElementById('btnClear').onclick = (btnEventArgs) => this.onClearClick(btnEventArgs);
 		document.getElementById('btnImportGame').onclick = () => this.onImportGameClicked();
 	}
@@ -351,28 +349,6 @@ class Chessboard {
 		return false;
 	}
 
-	showTab(display_tab) {
-		for (var btnTab of document.getElementsByClassName('tabLinks')) {
-			btnTab.className = btnTab.className.replace(' active', '');
-		}
-		display_tab.className += ' active';
-		for (var tab of document.getElementsByClassName('tabContent')) {
-			tab.style.display = 'none';
-		}
-
-		var firstLetter = display_tab.id.slice(3, 4).toLowerCase();
-		var commonName = display_tab.id.slice(4, display_tab.id.length - 3);
-		var tabContentId = `${firstLetter}${commonName}Div`;
-		var tabContent = document.getElementById(tabContentId);
-		tabContent.style.display = 'block';
-		
-	}
-
-	onTabClicked(tabEventArgs) {
-		console.log(tabEventArgs.srcElement);
-		this.showTab(tabEventArgs.srcElement);
-	}
-
 	getAllImageSrcNames() {
 		var allowedNames = [];
 		Object.keys(ChessPieceType.WHITE).forEach((key) => allowedNames.push(ChessPieceType.WHITE[key]));
@@ -380,27 +356,39 @@ class Chessboard {
 		return allowedNames;
 	}
 
+	showTab(tab) {
+		for (var tabLink of document.getElementsByClassName('tabLinks')) {
+			tabLink.className = tabLink.className.replace(' active', '');
+		}
+		tab.className += ' active';
+		for (var tabContent of document.getElementsByClassName('tabContent')) {
+			tabContent.style.display = 'none';
+		}
+		var firstLetter = tab.id.slice(3, 4).toLowerCase();
+		var commonName = tab.id.slice(4, tab.id.length - 3);
+		var tabContentId = `${firstLetter}${commonName}Div`;
+		var tabContent = document.getElementById(tabContentId);
+		tabContent.style.display = 'block';
+		
+	}
+
+	onTabClicked(tabEventArgs) {
+		this.showTab(tabEventArgs.srcElement);
+	}
+
 	onImportGameClicked() {
 		var pgnText = document.getElementById('pgnText');
-		alert(pgnText.value);
+		console.log(pgnText.value);
 	}
 
-	onSetUpClick(btnEventArgs) {
+	onStartPosClick(btnEventArgs) {
 		this.reset();
-		document.getElementById('btnSetUp').disabled = true;
 		document.getElementById('btnClear').disabled = false;
-		document.getElementById('btnReset').disabled = false;
-	}
-
-	onResetClick(btnEventArgs) {
-		this.reset();
 	}
 
 	onClearClick(btnEventArgs) {
 		this.clear();
-		document.getElementById('btnSetUp').disabled = false;
 		document.getElementById('btnClear').disabled = true;
-		document.getElementById('btnReset').disabled = true;
 	}
 
 	onDragStart(dragEventArgs) {

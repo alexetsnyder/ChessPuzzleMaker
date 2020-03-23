@@ -39,14 +39,14 @@ body {
   display: none;
 }
 
+.buttons {
+  margin: 5px 0px 0px 0px;
+  clear: both;
+}
+
 #chessEditor {
 	width: 40%;
 	float: left;
-}
-
-#buttons {
-	margin: 5px 0px 0px 0px;
-	clear: both;
 }
 
 #chessboardDiv {
