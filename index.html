@@ -1,25 +1,135 @@
 <!DOCTYPE HTML>
+
 <HTML>
 
 <HEAD>
+
 	<TITLE> Chess Puzzle Maker </TITLE>
+
 	<script type="module" src="main.js"> </script>
-	<link rel="stylesheet" type="text/css" href="chess.css">
+
+	<link rel="stylesheet" type="text/css" href="index.css">
+
 </HEAD>
 
-<BODY id='body'>
-	<H1> Chess Puzzle Maker </H1>
-	<div id="chessDiv">
-		<canvas id="chessboard">Canvas not supported.</canvas>
+<BODY>
+
+	<div id="chessboardDiv">
+
+		<canvas id="cnvChessboard">Canvas not supported.</canvas>
+
 	</div>
-	<div id="prefabDiv">
+
+	<div id='chessEditor'>
+
+		<div  class="tab">
+
+			<button class="tabLinks" id="btnBoardEditorTab"> Board Editor </button>
+
+			<button class="tabLinks" id="btnImportGameTab"> Import Game </button>
+
+			<button class="tabLinks" id="btnPuzzleMakerTab"> Puzzle Maker </button>
+
+			<button class="tabLinks" id="btnPlayChessTab"> Play Game </button>
+
+			<button class="tabLinks" id="btnCustomizeBoardTab"> Customize </button>
+
+		</div>
+
+		<div id="boardEditorDiv" class="tabContent">
+
+			<h2> Board Editor: </h2>
+
+			<div class="pieceTriple">
+
+				<img class="chessPieces" src='sprites/w_king_2x_ns.png' alt="w_king" ></img>
+
+				<img class="chessPieces" src='sprites/w_queen_2x_ns.png' alt="w_queen"></img>
+
+				<img class="chessPieces" src='sprites/w_rook_2x_ns.png' alt="w_rook"></img>
+
+			</div>
+
+			<div class="pieceTriple">
+
+				<img class="chessPieces" src='sprites/w_bishop_2x_ns.png' alt="w_bishop"></img>
+
+				<img class="chessPieces" src='sprites/w_knight_2x_ns.png' alt="w_knight"></img>
+
+				<img class="chessPieces" src='sprites/w_pawn_2x_ns.png' alt="w_pawn"></img>
+
+			</div>
+
+			<br>
+			<br>
+
+			<div class="pieceTriple">
+
+				<img class="chessPieces" src='sprites/b_king_2x_ns.png' alt="b_king"> </img>
+
+				<img class="chessPieces" src='sprites/b_queen_2x_ns.png' alt="b_queen"> </img>
+
+				<img class="chessPieces" src='sprites/b_rook_2x_ns.png' alt="b_rook"></img>
+			</div>
+
+			<div class="pieceTriple">
+				<img class="chessPieces" src='sprites/b_bishop_2x_ns.png' alt="b_bishop"></img>
+
+				<img class="chessPieces" src='sprites/b_knight_2x_ns.png' alt="b_knight"></img>
+
+				<img class="chessPieces" src='sprites/b_pawn_2x_ns.png' alt="b_pawn"></img>
+
+			</div>
+
+			<br>
+			<br>
+
+			<div>
+
+				<button class="buttons" id="btnStartPos"> Start Position </button>
+
+				<button class="buttons" id="btnClear" disabled="true"> Clear Board </button>
+
+				<button class="buttons" id="btnShowGrid"> Show Grid </button>
+
+			</div>
+
+		</div>
+
+		<div id="importGameDiv" class="tabContent">
+
+			<h2> Import Game: </h2>
+
+			<div>
+				<textarea id="pgnText"></textarea>
+			</div>
+
+			<div>
+				<button id="btnImportGame">Import Game</button>
+			</div>
+
+		</div>
+
+		<div id="puzzleMakerDiv" class="tabContent">
+
+			<h2> Make Chess Puzzle: </h2>
+
+		</div>
+
+		<div id="playChessDiv" class="tabContent">
+
+			<h2> Play Chess: </h2>
+
+		</div>
+
+		<div id="customizeBoardDiv" class="tabContent">
+			
+			<h2> Customize Board: </h2>
+
+		</div>
+
 	</div>
-	<div id="buttons">
-		<button id="btnSetUp"> Set Up Board </button>
-		<button id="btnReset" disabled="true"> Reset Board </button>
-		<button id="btnClear" disabled="true"> Clear Board </button>
-		<button id="btnShowGrid"> Show Grid </button>
-	</div>
+
 </BODY>
 
 </HTML>

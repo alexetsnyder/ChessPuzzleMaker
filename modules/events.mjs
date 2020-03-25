@@ -1,4 +1,5 @@
 //events.mjs
+import { Point } from './drawing.mjs';
 
 const EventTypes = {
 	MOUSE_DOWN : 'mouse_down',
@@ -39,8 +40,9 @@ class EventSystem {
 	}
 
 	convertScreenToCanvasPoint(eventArgs) {
-		eventArgs.canvasX = eventArgs.clientX - this.#canvasLeft;
-		eventArgs.canvasY = eventArgs.clientY - this.#canvasTop;
+		var canvasX = eventArgs.clientX - this.#canvasLeft;
+		var canvasY = eventArgs.clientY - this.#canvasTop;
+		eventArgs.mousePos = new Point(canvasX, canvasY);
 	}
 
 	callAllDelegateOfType(eventType, eventArgs) {

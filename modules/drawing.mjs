@@ -1,96 +1,227 @@
 //drawing.mjs
 
-class BaseClass {
-	#left = 0
-	#right = 0
-	#top = 0
-	#bottom = 0
-	#cx = 0
-	#cy = 0
-	#width = 0 
+class Point {
+	#x = 0
+	#y = 0
+
+	#h = 0
+	#k = 0
+
+	#width = 0
 	#height = 0
 
-	set width(w) {
-		this.#width = w;
+
+	get x() {
+		return this.#x;
+	}
+
+	set x(val) {
+		this.#x = val;
+	}
+
+	get y() {
+		return this.#y;
+	}
+
+	set y(val) {
+		this.#y = val;
+	}
+
+	get h() {
+		return this.#h;
+	}
+
+	set h(val) {
+		this.#h = val;
+	}
+
+	get k() {
+		return this.#k;
+	}
+
+	set k(val) {
+		this.#k = val;
 	}
 
 	get width() {
 		return this.#width;
 	}
 
-	set height(h) {
-		this.#height = h;
+	set width(val) {
+		this.#width = val;
 	}
 
 	get height() {
 		return this.#height;
 	}
 
-	set left(l) {
-		this.#left = l;
+	set height(val) {
+		this.#height = val;
+	}
+
+	constructor(x, y) {
+		this.x = x;
+		this.y = y;
+
+		this.h = x;
+		this.k = y;
+
+		this.width = x;
+		this.height = y;
+	}
+}
+
+class BaseClass {
+	#size = null
+	#left = 0
+	#right = 0
+	#top = 0
+	#bottom = 0
+	#leftTop = null
+	#leftBottom = null
+	#rightTop = null
+	#rightBottom = null
+	#center = null
+	#cx = 0
+	#cy = 0
+	#width = 0 
+	#height = 0
+
+	set size(val) {
+		this.#size = val;
+	}
+
+	get size() {
+		return this.#size;
+	}
+
+	set width(val) {
+		this.#width = val;
+	}
+
+	get width() {
+		return this.#width;
+	}
+
+	set height(val) {
+		this.#height = val;
+	}
+
+	get height() {
+		return this.#height;
+	}
+
+	set left(val) {
+		this.#left = val;
 	}
 
 	get left() {
 		return this.#left;
 	}
 
-	set right(r) {
-		this.#right = r;
+	set right(val) {
+		this.#right = val;
 	}
 
 	get right() {
 		return this.#right;
 	}
 
-	set top(t) {
-		this.#top = t;
+	set top(val) {
+		this.#top = val;
 	}
 
 	get top() {
 		return this.#top;
 	}
 
-	set bottom(b) {
-		this.#bottom = b;
+	set bottom(val) {
+		this.#bottom = val;
 	}
 
 	get bottom() {
 		return this.#bottom;
 	}
 
-	set cx(x) {
-		this.#cx = x;
+	set cx(val) {
+		this.#cx = val;
 	}
 
 	get cx() {
 		return this.#cx;
 	}
 
-	set cy(y) {
-		this.#cy = y;
+	set cy(val) {
+		this.#cy = val;
 	}
 
 	get cy() {
 		return this.#cy;
 	}
 
-	constructor(left, top, width, height) {
-		this.setSize(width, height);
-		this.setPos(left, top);
+	get center() {
+		return this.#center;
 	}
 
-	setSize(width, height) {
-		this.width = width;
-		this.height = height;
+	set center(val) {
+		this.#center = val;
 	}
 
-	setPos(left, top) {
-		this.left = left;
-		this.right = left + this.width;
-		this.top = top;
-		this.bottom = top + this.height;
-		this.cx = left + this.width / 2;
-		this.cy = top + this.height / 2;
+	set leftTop(val) {
+		this.#leftTop = val;
+	}
+
+	get leftTop() {
+		return this.#leftTop;
+	}
+
+	set leftBottom(val) {
+		this.#leftBottom = val;
+	}
+
+	get leftBottom() {
+		return this.#leftBottom;
+	}
+
+	set rightTop(val) {
+		this.#rightTop = val;
+	}
+
+	get rightTop() {
+		return this.#rightTop;
+	}
+
+	set rightBottom(val) {
+		this.#rightBottom = val;
+	}
+
+	get rightBottom() {
+		return this.#rightBottom;
+	}
+
+	constructor(leftTop, size) {
+		this.setSize(size);
+		this.setPos(leftTop);
+	}
+
+	setSize(size) {
+		this.size = size;
+		this.width = this.size.width;
+		this.height = this.size.height;
+	}
+
+	setPos(leftTop) {
+		this.leftTop = leftTop;
+		this.left = leftTop.x;
+		this.right = leftTop.x + this.width;
+		this.top = leftTop.y;
+		this.rightTop = new Point(this.right, this.top);
+		this.bottom = this.top + this.height;
+		this.leftBottom = new Point(this.left, this.bottom);
+		this.rightBottom = new Point(this.right, this.bottom);
+		this.cx = this.left + this.width / 2;
+		this.cy = this.top + this.height / 2;
+		this.center = new Point(this.cx, this.cy);
 	}
 }
 
@@ -108,7 +239,13 @@ class Sprite extends BaseClass {
 	load_image() {
 		this.#image = new Image();
 		this.#image.onload = () => { this.#isLoaded = true; };
-		this.#image.src = this.#src;
+		this.#image.onerror = () => {
+			this.#image.onerror = null;
+			console.log('Image was not found.');	
+			this.#image.onload = () => { this.#isLoaded = true; };
+			this.#image.src = 'sprites/error.png'
+		};
+		this.#image.src = this.#src;		
 	}
 
 	draw(ctx) {
@@ -120,6 +257,7 @@ class Sprite extends BaseClass {
 
 class Text {
 	#string = ''
+	#center = null
 	#cx = 0
 	#cy = 0
 	#font = ''
@@ -132,9 +270,10 @@ class Text {
 		this.#string = val;
 	}
 
-	constructor(string, cx, cy, font='20px Arial') {
-		this.#cx = cx;
-		this.#cy = cy;
+	constructor(string, center, font='20px Arial') {
+		this.#center = center;
+		this.#cx = center.x;
+		this.#cy = center.y;
 		this.#string = string;
 		this.#font = font;
 	}
@@ -150,8 +289,8 @@ class Text {
 class Rect extends BaseClass {
 	#color = '#FF0000'
 
-	constructor(left, top, width, height, color) {
-		super(left, top, width, height);
+	constructor(leftTop, size, color) {
+		super(leftTop, size);
 		this.#color = color;
 	}
 
@@ -163,4 +302,4 @@ class Rect extends BaseClass {
 	}
 }
 
-export { Rect, Text, Sprite };
+export { Rect, Text, Sprite, Point };
