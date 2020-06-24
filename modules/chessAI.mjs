@@ -1,30 +1,7 @@
 //chessAI.mjs
+import { Point } from './drawing.mjs';
 
-class Vector {
-	#x = 0
-	#y = 0
-
-	get x() {
-		return this.#x;
-	}
-
-	set x(val) {
-		this.#x = val;
-	}
-
-	get y() {
-		return this.#y;
-	}
-
-	set y(val) {
-		this.#y = val;
-	}
-
-	constructor(x, y) {
-		this.#x = x;
-		this.#y = y;
-	}
-
+class Vector extends Point {
 	minus(v2) {
 		return new Vector(this.x - v2.x, this.y - v2.y);
 	}
