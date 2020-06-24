@@ -2,6 +2,7 @@
 import { Chessboard, ChessPiece, ChessInfo, ChessPieceType, GetPieceSize } from './chessboard.mjs';
 import { Events, EventTypes } from './events.mjs';
 import { Point } from './drawing.mjs';
+import { PGNParser } from './pgnParser.mjs';
 
 function GetCanvasSize() {
 	var size = ChessInfo.CHESSBOARD_ROWS * ChessInfo.DEFAULT_TILE_SIZE + 6; //Add 6 for selection border
@@ -15,6 +16,14 @@ const ChessState = {
 	PLAY      : 'play',
 	CUSTOMIZE : 'customize', 
 	NONE      : 'none'
+}
+
+const ConvertTabIDToState = {
+	'btnBoardEditorTab'    : ChessState.EDITOR,
+	'btnImportGameTab'     : ChessState.IMPORT,
+	'btnPuzzleMakerTab'    : ChessState.PUZZLE,
+	'btnPlayChessTab'      : ChessState.PLAY,
+	'btnCustomizeBoardTab' : ChessState.CUSTOMIZE
 }
 
 const ChessStartPosition = {
@@ -143,6 +152,8 @@ class ChessController {
 		for (var tabContent of document.getElementsByClassName('tabContent')) {
 			tabContent.style.display = 'none';
 		}
+		this.#state = ConvertTabIDToState[tab.id];
+		console.log(this.#state);
 		var firstLetter = tab.id.slice(3, 4).toLowerCase();
 		var commonName = tab.id.slice(4, tab.id.length - 3);
 		var tabContentId = `${firstLetter}${commonName}Div`;
@@ -219,7 +230,8 @@ class ChessController {
 
 	onImportGameClicked() {
 		var pgnText = document.getElementById('pgnText');
-		console.log(pgnText.value);
+		var pgnParser = new PGNParser(pgnText.value);
+		pgnParser.parse();
 	}
 
 	onStartPosClick(btnEventArgs) {

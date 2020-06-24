@@ -4,70 +4,73 @@ class Point {
 	#x = 0
 	#y = 0
 
-	#h = 0
-	#k = 0
-
-	#width = 0
-	#height = 0
-
-
 	get x() {
 		return this.#x;
 	}
 
-	set x(val) {
-		this.#x = val;
+	set x(value) {
+		this.#x = value;
+	}
+
+	get h() {
+		return this.x; 
+	}
+
+	set h(value) {
+		this.x = value;
+	}
+
+	get item1() {
+		return this.x; 
+	}
+
+	set item1(value) {
+		this.x = value;
 	}
 
 	get y() {
 		return this.#y;
 	}
 
-	set y(val) {
-		this.#y = val;
-	}
-
-	get h() {
-		return this.#h;
-	}
-
-	set h(val) {
-		this.#h = val;
+	set y(value) {
+		this.#y = value;
 	}
 
 	get k() {
-		return this.#k;
+		return this.y; 
 	}
 
-	set k(val) {
-		this.#k = val;
+	set k(value) {
+		this.y = value;
+	}
+
+	get item2() {
+		return this.y; 
+	}
+
+	set item2(value) {
+		this.y = value;
 	}
 
 	get width() {
-		return this.#width;
+		return this.x;
 	}
 
-	set width(val) {
-		this.#width = val;
+	set width(value) {
+		this.x = value;
 	}
 
 	get height() {
-		return this.#height;
+		return this.y;
 	}
 
-	set height(val) {
-		this.#height = val;
+	set height(value) {
+		this.y = value;
 	}
 
 	constructor(x, y) {
 		this.x = x;
 		this.y = y;
-
-		this.h = x;
-		this.k = y;
-
-		this.width = x;
-		this.height = y;
 	}
 }
 
