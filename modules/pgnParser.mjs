@@ -5,7 +5,109 @@ function isEmptyOrWhiteSpace(string) {
 	return string.trim().length === 0;
 }
 
+class ChessMove {
+	#moveNumber = 0
+	#whiteMove = ''
+	#blackMove = ''
+
+	get moveNumber() {
+		return this.#moveNumber;
+	}
+
+	set moveNumber(value) {
+		this.#moveNumber = value;
+	}
+
+	get whiteMove() {
+		return this.#whiteMove;
+	}
+
+	set whiteMove(value) {
+		this.#whiteMove = value;
+	}
+
+	get blackMove() {
+		return this.#blackMove;
+	}
+
+	set blackMove(value) {
+		this.#blackMove = value;
+	}
+
+	constructor(moveNumber, white, black) {
+		this.moveNumber = moveNumber;
+		this.whiteMove = white;
+		this.blackMove = black;
+	}
+}
+
+class ChessGame {
+	#chessMoves = null
+
+	constructor() {
+		
+	}
+
+
+}
+
+class String {
+	#string = ''
+	#quotes = ['\'', '\"']
+
+	get string() {
+		return this.#string;
+	}
+
+	set string(value) {
+		this.#string = value;
+	}
+
+	constructor(string) {
+		this.string = string;
+	}
+
+	isEmptyOrWhiteSpace() {
+		return isEmptyOrWhiteSpace(this.string);
+	}
+
+	add(char) {
+		this.string += char;
+	}
+
+	clear() {
+		this.string = '';
+	}
+
+	split(splitChar=' ') {
+		var currentWord = new String('');
+		var stringList = [];
+		var isInQuotes = false;
+		for (var i = 0; i < this.string.length; i++) {
+			var char = this.string.charAt(i);
+			if (!isInQuotes && char === splitChar) {
+				if (!currentWord.isEmptyOrWhiteSpace()) {
+					stringList.push(currentWord.string);
+					currentWord.clear();
+				}
+			}
+			else if (char === '\'' || char === '\"') {
+				isInQuotes = !isInQuotes;
+			}
+			else {
+				currentWord.add(char);
+			}
+		}
+		if (!currentWord.isEmptyOrWhiteSpace()) {
+			stringList.push(currentWord.string);
+		}
+		return stringList;
+	}
+}
+
 class PGNParser {
+	#quoteChars = ['\"', '\'']
+	#pgnData = null
 	#pgnText = ''
 	#lineNumber = 0
 	#pgnLineArray = null
@@ -34,10 +136,19 @@ class PGNParser {
 		this.#pgnLineArray = value;
 	}
 
+	get pgnData() {
+		return this.#pgnData;
+	}
+
+	set pgnData(value) {
+		this.#pgnData = value;
+	}
+
 	constructor(pgnText) {
 		this.lineNumber = 0
 		this.pgnText = pgnText;
 		this.pgnLineArray = this.pgnText.split('\n'); 
+		this.pgnData = {};
 	}
 
 	parse() {
@@ -53,16 +164,25 @@ class PGNParser {
 			}
 			this.lineNumber++;
 		}
+		console.log(this.pgnData);
 	}
 
 	parseTag(line) {
-		console.log('parseTag:');
-		this.logLineError(line);
+		var dataLine = new String(line.slice(1, -1));
+		var [key, value] = dataLine.split();
+		this.pgnData[key] = value; 
 	}
 
 	parseGameLine(line) {
+		if (!('moves' in this.pgnData)) {
+			this.pgnData['moves'] = {};
+		}
 		console.log('parseGameLine:');
 		this.logLineError(line);
+	}
+
+	getMove(line) {
+
 	}
 
 	logLineError(line) {
